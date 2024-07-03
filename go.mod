@@ -1,4 +1,4 @@
-module rtrl
+module github.com/mrbelka12000/rl
 
 go 1.22
 

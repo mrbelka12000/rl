@@ -1,4 +1,4 @@
-package rtrl
+package rl
 
 func (rl *RateLimit) tbLock(key string) error {
 	return nil

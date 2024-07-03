@@ -1,4 +1,4 @@
-package rtrl
+package rl
 
 func (rl *RateLimit) Lock(key string) error {
 	switch rl.Method {

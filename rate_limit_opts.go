@@ -1,4 +1,4 @@
-package rtrl
+package rl
 
 type (
 	option func(*RateLimit)

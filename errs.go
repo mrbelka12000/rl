@@ -1,4 +1,4 @@
-package rtrl
+package rl
 
 import "errors"
 
