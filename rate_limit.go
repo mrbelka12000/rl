@@ -3,9 +3,16 @@ package rl
 import (
 	"time"
 
+	"github.com/mrbelka12000/rl/cache/inmem"
+	"github.com/mrbelka12000/rl/cache/redis"
+	"github.com/mrbelka12000/rl/errs"
 	rpkg "github.com/mrbelka12000/rl/pkg/redis"
-	"github.com/mrbelka12000/rl/store/inmem"
-	"github.com/mrbelka12000/rl/store/redis"
+	"github.com/mrbelka12000/rl/workers"
+	"github.com/mrbelka12000/rl/workers/fixed_window"
+	"github.com/mrbelka12000/rl/workers/leacky_bucket"
+	"github.com/mrbelka12000/rl/workers/sliding_window"
+	"github.com/mrbelka12000/rl/workers/sliding_window_counter"
+	"github.com/mrbelka12000/rl/workers/token_bucket"
 )
 
 const (
@@ -16,17 +23,14 @@ const (
 type (
 	// RateLimitBuilder for build all connections
 	RateLimitBuilder struct {
-		method    method
+		method    Method
 		redisAddr string
 		limit     uint
 		ttl       time.Duration
 	}
 
-	// RateLimiter implement all methods
+	// RateLimiter ...
 	RateLimiter struct {
-		method method
-		limit  uint
-		ttl    time.Duration
 		locker
 	}
 )
@@ -44,21 +48,42 @@ func New(opts ...option) *RateLimiter {
 		opt(rlb)
 	}
 
-	rl := &RateLimiter{
-		method: rlb.method,
-		limit:  rlb.limit,
-		ttl:    rlb.ttl,
-	}
-
+	var w workers.Cache
 	if rlb.redisAddr == "" {
-		rl.locker = inmem.New()
+		w = inmem.New()
 	} else {
-		redisCLI, err := rpkg.GetConnection(rlb.redisAddr)
+		client, err := rpkg.GetConnection(rlb.redisAddr)
 		if err != nil {
 			panic(err)
 		}
-		rl.locker = redis.New(redisCLI)
+		w = redis.New(client)
+	}
+
+	rl := &RateLimiter{
+		locker: chooseWorker(w, rlb.method, rlb.limit, rlb.ttl),
 	}
 
 	return rl
+}
+
+func chooseWorker(w workers.Cache, m Method, limit uint, ttl time.Duration) locker {
+	switch m {
+	case MethodFixedWindow:
+		return fixed_window.New(w, limit, ttl)
+
+	case MethodTokenBucket:
+		return token_bucket.New(w, limit, ttl)
+
+	case MethodSlidingWindowCounter:
+		return sliding_window_counter.New(w, limit, ttl)
+
+	case MethodSlidingWindow:
+		return sliding_window.New(w, limit, ttl)
+
+	case MethodLeakyBucket:
+		return leacky_bucket.New(w, limit, ttl)
+
+	default:
+		panic(errs.ErrMethodUndefined)
+	}
 }

@@ -1,13 +1,13 @@
 package rl
 
 type (
-	method string
+	Method string
 )
 
 const (
-	MethodTokenBucket          method = "token_bucket"
-	MethodLeakyBucket          method = "leaky_bucket"
-	MethodFixedWindow          method = "fixed_window"
-	MethodSlidingWindow        method = "sliding_window"
-	MethodSlidingWindowCounter method = "sliding_window_counter"
+	MethodTokenBucket          Method = "token_bucket"
+	MethodLeakyBucket          Method = "leaky_bucket"
+	MethodFixedWindow          Method = "fixed_window"
+	MethodSlidingWindow        Method = "sliding_window"
+	MethodSlidingWindowCounter Method = "sliding_window_counter"
 )

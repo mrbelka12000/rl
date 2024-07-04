@@ -1,13 +1,15 @@
 package rl
 
-import "time"
+import (
+	"time"
+)
 
 type (
 	option func(*RateLimitBuilder)
 )
 
 // WithMethod set custom rate limit method
-func WithMethod(m method) option {
+func WithMethod(m Method) option {
 	return func(rl *RateLimitBuilder) {
 		rl.method = m
 	}
