@@ -1,5 +1,5 @@
 package rl
 
-func (rl *RateLimit) fwLock(key string) error {
+func (rl *RateLimiter) fwLock(key string) error {
 	return nil
 }

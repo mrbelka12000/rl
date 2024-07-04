@@ -1,8 +1,8 @@
 package rl_test
 
 import (
-	"fmt"
 	"testing"
+	"time"
 
 	"github.com/mrbelka12000/rl"
 )
@@ -10,7 +10,13 @@ import (
 func TestDefault(t *testing.T) {
 	rateLimiter := rl.New(
 		rl.WithMethod(rl.MethodTokenBucket),
+		rl.WithLimit(15),
+		rl.WithTTL(24*time.Hour),
 	)
 
-	fmt.Printf("%+v\n", rateLimiter)
+	err := rateLimiter.Lock("suka")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log("OK")
 }

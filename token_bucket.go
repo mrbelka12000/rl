@@ -1,5 +1,5 @@
 package rl
 
-func (rl *RateLimit) tbLock(key string) error {
+func (rl *RateLimiter) tbLock(key string) error {
 	return nil
 }

@@ -1,5 +1,5 @@
 package rl
 
-func (rl *RateLimit) swcLock(key string) error {
+func (rl *RateLimiter) swcLock(key string) error {
 	return nil
 }
