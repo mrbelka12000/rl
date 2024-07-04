@@ -27,10 +27,11 @@ type (
 		method method
 		limit  uint
 		ttl    time.Duration
-		Locker
+		locker
 	}
 )
 
+// New entrypoint that creates instance for rate limiter
 func New(opts ...option) *RateLimiter {
 	// default settings for rate limiter
 	rlb := &RateLimitBuilder{
@@ -50,13 +51,13 @@ func New(opts ...option) *RateLimiter {
 	}
 
 	if rlb.redisAddr == "" {
-		rl.Locker = inmem.New()
+		rl.locker = inmem.New()
 	} else {
 		redisCLI, err := rpkg.GetConnection(rlb.redisAddr)
 		if err != nil {
 			panic(err)
 		}
-		rl.Locker = redis.New(redisCLI)
+		rl.locker = redis.New(redisCLI)
 	}
 
 	return rl
