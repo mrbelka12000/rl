@@ -8,15 +8,11 @@ import (
 )
 
 func TestDefault(t *testing.T) {
-	rl.New(
+	rateLimiter := rl.New(
 		rl.WithMethod(rl.MethodTokenBucket),
 		rl.WithLimit(15),
 		rl.WithTTL(2*time.Second),
 	)
 
-	var slice []int
-	go func() {
-		slice = append(slice, 1)
-	}()
-	time.Sleep(35 * time.Second)
+	rateLimiter.Lock("test")
 }
