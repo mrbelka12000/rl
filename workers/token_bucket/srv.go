@@ -1,21 +1,23 @@
 package token_bucket
 
 import (
-	"time"
+	"context"
 
 	"github.com/mrbelka12000/rl/workers"
 )
 
 type TokenBucket struct {
 	worker workers.Cache
-	limit  int
-	ttl    time.Duration
+	limit  uint
 }
 
-func New(w workers.Cache, limit uint, ttl time.Duration) *TokenBucket {
-	return &TokenBucket{}
+func New(w workers.Cache, limit uint) *TokenBucket {
+	return &TokenBucket{
+		worker: w,
+		limit:  limit,
+	}
 }
 
 func (t TokenBucket) Lock(key string) error {
-	return nil
+	return t.worker.Incr(context.Background(), key)
 }

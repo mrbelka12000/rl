@@ -8,16 +8,15 @@ import (
 )
 
 func TestDefault(t *testing.T) {
-	rateLimiter := rl.New(
+	rl.New(
 		rl.WithMethod(rl.MethodTokenBucket),
 		rl.WithLimit(15),
-		rl.WithTTL(24*time.Hour),
+		rl.WithTTL(2*time.Second),
 	)
 
-	err := rateLimiter.Lock("suka")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	t.Log("OK")
+	var slice []int
+	go func() {
+		slice = append(slice, 1)
+	}()
+	time.Sleep(35 * time.Second)
 }

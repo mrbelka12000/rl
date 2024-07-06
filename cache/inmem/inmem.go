@@ -6,28 +6,63 @@ import (
 	"time"
 )
 
-type Store struct {
-	Data map[string]any
-	sync.RWMutex
-}
-
-func New() *Store {
-	return &Store{
-		Data: make(map[string]any),
+type (
+	// Store in memory cache
+	Store struct {
+		cache map[string]item
+		stash map[string]int64
+		sync.RWMutex
+		ttl time.Duration
 	}
+
+	item struct {
+		value    int
+		expireAt int64
+	}
+)
+
+func New(ttl time.Duration) *Store {
+	s := &Store{
+		cache: make(map[string]item),
+		stash: make(map[string]int64),
+		ttl:   ttl,
+	}
+
+	s.Flush()
+
+	return s
 }
 
 func (s *Store) Incr(ctx context.Context, key string) error {
-	//TODO implement me
-	panic("implement me")
+	s.Lock()
+	defer s.Unlock()
+
+	i, ok := s.cache[key]
+	if !ok {
+		expires := time.Now().Add(s.ttl).Unix()
+		i = item{
+			value:    1,
+			expireAt: expires,
+		}
+		s.cache[key] = i
+		s.stash[key] = expires
+		return nil
+	}
+
+	i.value++
+	s.cache[key] = i
+
+	return nil
 }
 
-func (s *Store) Expire(ctx context.Context, key string, ttl time.Duration) error {
-	//TODO implement me
-	panic("implement me")
-}
+func (s *Store) Get(ctx context.Context, key string) (int, bool) {
+	s.RLock()
+	defer s.RUnlock()
 
-func (s *Store) Get(ctx context.Context, key string) (string, error) {
-	//TODO implement me
-	panic("implement me")
+	i, ok := s.cache[key]
+	if !ok {
+		return 0, false
+	}
+
+	return i.value, true
 }

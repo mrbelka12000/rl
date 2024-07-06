@@ -37,6 +37,7 @@ type (
 
 // New entrypoint that creates instance for rate limiter
 func New(opts ...option) *RateLimiter {
+
 	// default settings for rate limiter
 	rlb := &RateLimitBuilder{
 		method: MethodFixedWindow,
@@ -50,38 +51,38 @@ func New(opts ...option) *RateLimiter {
 
 	var w workers.Cache
 	if rlb.redisAddr == "" {
-		w = inmem.New()
+		w = inmem.New(rlb.ttl)
 	} else {
 		client, err := rpkg.GetConnection(rlb.redisAddr)
 		if err != nil {
 			panic(err)
 		}
-		w = redis.New(client)
+		w = redis.New(client, rlb.ttl)
 	}
 
 	rl := &RateLimiter{
-		locker: chooseWorker(w, rlb.method, rlb.limit, rlb.ttl),
+		locker: chooseWorker(w, rlb.method, rlb.limit),
 	}
 
 	return rl
 }
 
-func chooseWorker(w workers.Cache, m Method, limit uint, ttl time.Duration) locker {
+func chooseWorker(w workers.Cache, m Method, limit uint) locker {
 	switch m {
 	case MethodFixedWindow:
-		return fixed_window.New(w, limit, ttl)
+		return fixed_window.New(w, limit)
 
 	case MethodTokenBucket:
-		return token_bucket.New(w, limit, ttl)
+		return token_bucket.New(w, limit)
 
 	case MethodSlidingWindowCounter:
-		return sliding_window_counter.New(w, limit, ttl)
+		return sliding_window_counter.New(w, limit)
 
 	case MethodSlidingWindow:
-		return sliding_window.New(w, limit, ttl)
+		return sliding_window.New(w, limit)
 
 	case MethodLeakyBucket:
-		return leacky_bucket.New(w, limit, ttl)
+		return leacky_bucket.New(w, limit)
 
 	default:
 		panic(errs.ErrMethodUndefined)
